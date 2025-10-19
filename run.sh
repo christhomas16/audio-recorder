@@ -64,6 +64,13 @@ echo "Starting Audio Recorder..."
 echo "=========================================="
 echo ""
 
+# Ensure Homebrew binaries are in PATH (for ffmpeg)
+if [ -d "/opt/homebrew/bin" ]; then
+    export PATH="/opt/homebrew/bin:$PATH"
+elif [ -d "/usr/local/bin" ]; then
+    export PATH="/usr/local/bin:$PATH"
+fi
+
 # Run the CLI application (no GUI dependencies)
 python audio_recorder_cli.py
 

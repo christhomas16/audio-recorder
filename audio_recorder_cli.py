@@ -44,14 +44,39 @@ class AudioRecorderCLI:
 
     def check_ffmpeg(self):
         """Check if ffmpeg is installed"""
+        # First try the default PATH
         try:
             result = subprocess.run(['ffmpeg', '-version'],
                                    capture_output=True,
                                    text=True,
                                    timeout=2)
-            return result.returncode == 0
+            if result.returncode == 0:
+                return True
         except (FileNotFoundError, subprocess.TimeoutExpired):
-            return False
+            pass
+
+        # Try common Homebrew paths
+        common_paths = [
+            '/opt/homebrew/bin/ffmpeg',  # Apple Silicon Mac
+            '/usr/local/bin/ffmpeg',     # Intel Mac
+        ]
+
+        for ffmpeg_path in common_paths:
+            if os.path.exists(ffmpeg_path):
+                try:
+                    result = subprocess.run([ffmpeg_path, '-version'],
+                                           capture_output=True,
+                                           text=True,
+                                           timeout=2)
+                    if result.returncode == 0:
+                        # Update PATH to include this directory
+                        ffmpeg_dir = os.path.dirname(ffmpeg_path)
+                        os.environ['PATH'] = f"{ffmpeg_dir}:{os.environ.get('PATH', '')}"
+                        return True
+                except (FileNotFoundError, subprocess.TimeoutExpired):
+                    continue
+
+        return False
 
     def list_devices(self):
         """List all available audio input devices"""
